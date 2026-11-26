@@ -69,25 +69,28 @@ src/
   debe permitir CORS con credenciales para el origen exacto del frontend y la
   cookie debe usar `SameSite=None; Secure`. Ajusta `connect-src`, `img-src` y
   `media-src` en `public/_headers`.
-- **Netlify / Cloudflare Pages:** `public/_redirects` ya incluye
-  `/* /index.html 200`, y `public/_headers` trae la CSP.
+- **Cloudflare (Workers con assets):** ver la sección siguiente. El fallback SPA
+  está en `wrangler.jsonc` y `public/_headers` trae la CSP.
+- **Netlify:** añade un `_redirects` con `/* /index.html 200`.
 - **Nginx:** `try_files $uri $uri/ /index.html;`
 
-## Despliegue en Cloudflare Pages (con proxy)
+## Despliegue en Cloudflare (Workers con assets y proxy)
 
-El frontend se sirve desde Pages y las carpetas `functions/api` y
-`functions/media` reenvían `/api` y `/media` al backend. El navegador solo
-habla con el dominio de Pages, así que la cookie de sesión funciona sin CORS y
-`VITE_API_URL` se deja vacío.
+El proyecto se despliega como un Worker (`wrangler.jsonc`) que sirve `dist/` con
+fallback SPA. Solo `/api/*` y `/media/*` pasan por `worker/index.ts`, que las
+reenvía al backend. El navegador habla con un solo dominio, así que la cookie de
+sesión funciona sin CORS y `VITE_API_URL` se deja vacío.
 
-1. Crea el proyecto en Pages conectando el repositorio de GitHub (o sube
-   `dist/` con `npx wrangler pages deploy dist`).
-2. Build command: `npm run build` · Output directory: `dist` · Node 22.
+1. Conecta el repositorio de GitHub en **Workers & Pages → Create → Import a
+   repository**.
+2. Build command: `npm run build` · Deploy command: `npx wrangler deploy`.
 3. En **Settings → Variables and Secrets** define `BACKEND_URL` (sin barra final):
    - Mientras el backend corra en tu PC: la URL fija del túnel de ngrok.
    - Con el backend desplegado: `https://api.bygrow.com.co`.
-4. Cambiar de backend es solo editar `BACKEND_URL` y volver a desplegar.
-5. El backend debe aceptar el dominio de Pages como origen permitido
+4. Cambiar de backend es solo editar `BACKEND_URL` y volver a desplegar
+   (`keep_vars` conserva la variable entre despliegues).
+5. Dominio propio: **Settings → Domains & Routes → Add → Custom domain**.
+6. El backend debe aceptar el dominio del frontend como origen permitido
    (su middleware de mismo origen y la lista de CORS).
 
 La URL del backend no está en el código: solo vive en esa variable.
