@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
+import { AiSettingsPage } from '@/features/ai-settings/ai-settings-page'
 import { LoginPage } from '@/features/auth/login-page'
 import { RequireAdmin } from '@/features/auth/require-admin'
 import { RequireAuth } from '@/features/auth/require-auth'
@@ -21,6 +22,13 @@ export default function App() {
           <Route path="/inbox/:chatId" element={<InboxPage />} />
           <Route element={<RequireAdmin />}>
             <Route path="/users" element={<UsersPage />} />
+          </Route>
+          <Route
+            element={
+              <RequireAdmin description="Solo un administrador puede ver y cambiar la configuración del asistente de IA." />
+            }
+          >
+            <Route path="/ajustes/asistente" element={<AiSettingsPage />} />
           </Route>
           <Route path="/settings" element={<SettingsPage />} />
         </Route>

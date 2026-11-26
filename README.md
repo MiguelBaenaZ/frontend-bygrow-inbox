@@ -3,9 +3,9 @@
 Bandeja/CRM de WhatsApp para el equipo de ByGrow. SPA interna (sin SEO ni SSR)
 que consume el backend NestJS existente.
 
-**Stack:** Vite · React 19 · TypeScript estricto · React Router v7 (modo
-declarativo) · TanStack Query v5 · Tailwind CSS v4 · shadcn/ui + Radix · Lucide ·
-Vitest + Testing Library.
+**Stack:** Vite · React 19 · TypeScript estricto · React Router v7 · TanStack
+Query v5 · Tailwind CSS v4 · shadcn/ui + Radix · Lucide · Vitest + Testing
+Library.
 
 ## Requisitos
 
@@ -55,7 +55,7 @@ de sesión funciona sin CORS.
 src/
   lib/          cliente API (ApiError), query keys, formato, errores
   types/api.ts  contrato de la API
-  features/     auth, inbox, users, settings, layout, theme
+  features/     auth, inbox, users, settings, ai-settings, layout, theme
   components/   UI reutilizable (shadcn/ui)
 ```
 

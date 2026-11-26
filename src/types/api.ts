@@ -115,6 +115,80 @@ export interface UsersResponse {
   users: PublicUser[]
 }
 
+export interface AiService {
+  name: string
+  description: string
+  price: string
+}
+
+export interface AiSettingsMessages {
+  handoff: string
+  technicalError: string
+  audioFailed: string
+  unsupported: string
+  fallback: string
+}
+
+export interface AiSettings {
+  assistantName: string
+  businessName: string
+  businessDescription: string
+  personality: string
+  businessHours: string
+  services: AiService[]
+  knowledge: string
+  rules: string[]
+  extraInstructions: string
+  messages: AiSettingsMessages
+  model: string
+  temperature: number | null
+  maxTokens: number | null
+}
+
+export interface AiSettingsLimits {
+  short: number
+  medium: number
+  long: number
+  maxServices: number
+  maxRules: number
+  ruleLength: number
+}
+
+export interface AiSettingsResponse {
+  ok: boolean
+  settings: AiSettings
+  version: number
+  updatedAt: number
+  defaults: {
+    messages: AiSettingsMessages
+  }
+  limits: AiSettingsLimits
+}
+
+export interface AiSettingsMutationResponse {
+  ok: boolean
+  settings: AiSettings
+  version: number
+  updatedAt: number
+}
+
+export interface AiSettingsPreviewResponse {
+  ok: boolean
+  prompt: string
+}
+
+export interface AiSettingsHistoryEntry {
+  version: number
+  updatedAt: number
+  updatedBy: string
+  email: string
+}
+
+export interface AiSettingsHistoryResponse {
+  ok: boolean
+  versions: AiSettingsHistoryEntry[]
+}
+
 export interface ReplyResponse {
   ok: boolean
   wamid: string | null

@@ -3,7 +3,7 @@ import '@fontsource-variable/figtree'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import App from '@/App'
 import { Toaster } from '@/components/ui/sonner'
@@ -26,22 +26,31 @@ const queryClient = new QueryClient({
   },
 })
 
-const rootElement = document.getElementById('root')
-if (!rootElement) throw new Error('No se encontró el elemento root')
-
-createRoot(rootElement).render(
-  <StrictMode>
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+// Data router porque la configuración del asistente necesita bloquear la
+// navegación cuando hay cambios sin guardar (useBlocker).
+const router = createBrowserRouter([
+  {
+    path: '*',
+    element: (
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <TooltipProvider>
               <App />
               <Toaster />
             </TooltipProvider>
           </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </ThemeProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    ),
+  },
+])
+
+const rootElement = document.getElementById('root')
+if (!rootElement) throw new Error('No se encontró el elemento root')
+
+createRoot(rootElement).render(
+  <StrictMode>
+    <RouterProvider router={router} />
   </StrictMode>,
 )

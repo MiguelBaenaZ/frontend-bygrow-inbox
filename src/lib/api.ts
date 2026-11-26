@@ -1,4 +1,9 @@
 import type {
+  AiSettings,
+  AiSettingsHistoryResponse,
+  AiSettingsMutationResponse,
+  AiSettingsPreviewResponse,
+  AiSettingsResponse,
   ChatDetailResponse,
   ChatsResponse,
   HandoffResponse,
@@ -105,9 +110,9 @@ function shouldNotifyUnauthorized(path: string, error: ApiError): boolean {
   return true
 }
 
-function jsonBody(body: unknown): RequestInit {
+function jsonBody(body: unknown, method = 'POST'): RequestInit {
   return {
-    method: 'POST',
+    method,
     body: JSON.stringify(body),
   }
 }
@@ -170,10 +175,7 @@ export const inboxApi = {
     return request<StageResponse>('/api/stage', jsonBody({ to, stage }))
   },
 
-  setOptIn(
-    to: string,
-    values: { optIn?: boolean; optOut?: boolean },
-  ): Promise<OptInResponse> {
+  setOptIn(to: string, values: { optIn?: boolean; optOut?: boolean }): Promise<OptInResponse> {
     return request<OptInResponse>('/api/optin', jsonBody({ to, ...values }))
   },
 
@@ -231,6 +233,35 @@ export const usersApi = {
       `/api/users/${encodeURIComponent(id)}/reset-password`,
       jsonBody({ password }),
     )
+  },
+}
+
+export const aiSettingsApi = {
+  get(): Promise<AiSettingsResponse> {
+    return request<AiSettingsResponse>('/api/ai-settings')
+  },
+
+  update(settings: AiSettings): Promise<AiSettingsMutationResponse> {
+    return request<AiSettingsMutationResponse>('/api/ai-settings', jsonBody(settings, 'PUT'))
+  },
+
+  preview(settings: AiSettings): Promise<AiSettingsPreviewResponse> {
+    return request<AiSettingsPreviewResponse>('/api/ai-settings/preview', jsonBody(settings))
+  },
+
+  history(): Promise<AiSettingsHistoryResponse> {
+    return request<AiSettingsHistoryResponse>('/api/ai-settings/history')
+  },
+
+  restore(version: number): Promise<AiSettingsMutationResponse> {
+    return request<AiSettingsMutationResponse>(
+      `/api/ai-settings/restore/${encodeURIComponent(String(version))}`,
+      { method: 'POST' },
+    )
+  },
+
+  reset(): Promise<AiSettingsMutationResponse> {
+    return request<AiSettingsMutationResponse>('/api/ai-settings/reset', { method: 'POST' })
   },
 }
 

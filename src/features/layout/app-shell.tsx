@@ -1,4 +1,5 @@
 import {
+  BotIcon,
   ChevronDownIcon,
   InboxIcon,
   LogOutIcon,
@@ -22,12 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useAuth } from '@/features/auth/auth-context'
 import { useTheme } from '@/features/theme/theme-context'
 import { useNow } from '@/hooks/use-now'
@@ -36,10 +32,12 @@ import { formatDate, formatRole, formatTime } from '@/lib/format'
 
 const navItems = [
   { to: '/inbox', label: 'Bandeja', icon: InboxIcon, adminOnly: false },
+  { to: '/ajustes/asistente', label: 'Asistente de IA', icon: BotIcon, adminOnly: true },
   { to: '/users', label: 'Equipo', icon: UsersIcon, adminOnly: true },
 ] as const
 
 function sectionName(pathname: string): string {
+  if (pathname.startsWith('/ajustes/asistente')) return 'Asistente de IA'
   if (pathname.startsWith('/users')) return 'Equipo'
   if (pathname.startsWith('/settings')) return 'Ajustes'
   return 'Bandeja'
@@ -124,14 +122,19 @@ function AccountMenu({ compact = false }: { compact?: boolean }) {
                   {formatRole(user.role)}
                 </span>
               </span>
-              <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <ChevronDownIcon
+                className="size-3.5 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
             </>
           ) : null}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="start" className="w-[232px]">
         <DropdownMenuLabel className="font-normal">
-          <span className="block truncate text-[12px] font-medium text-foreground">{user.email}</span>
+          <span className="block truncate text-[12px] font-medium text-foreground">
+            {user.email}
+          </span>
           <span className="mt-0.5 block text-[11px] text-muted-foreground">
             {formatRole(user.role)}
           </span>
