@@ -2,7 +2,7 @@ import { CircleAlertIcon, EyeIcon, EyeOffIcon, Loader2Icon, MoonIcon, SunIcon } 
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
-import { ByGrowLogo, ByGrowMark } from '@/components/brand/bygrow-logo'
+import { ByGrowLogo, ByGrowMark, ByGrowWordmark } from '@/components/brand/bygrow-logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -77,9 +77,7 @@ export function LoginPage() {
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-2 text-primary">
               <ByGrowMark className="h-8" />
-              <span className="font-display text-[24px] leading-none font-bold tracking-[-0.045em]">
-                bygrow
-              </span>
+              <ByGrowWordmark className="text-[24px]" />
               <span className="ml-1 border-l border-primary/20 pl-2 text-[12px] font-medium text-muted-foreground">
                 Inbox
               </span>

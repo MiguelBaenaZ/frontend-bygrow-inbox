@@ -59,6 +59,15 @@ interface ByGrowLogoProps {
   wordmarkClassName?: string
 }
 
+export function ByGrowWordmark({ className }: { className?: string }) {
+  return (
+    <span className={cn('font-display leading-none font-bold tracking-[-0.045em]', className)}>
+      <span className="text-foreground">By</span>
+      <span className="text-primary">Grow</span>
+    </span>
+  )
+}
+
 export function ByGrowLogo({
   className,
   showInbox = true,
@@ -68,14 +77,7 @@ export function ByGrowLogo({
   return (
     <span className={cn('inline-flex items-center gap-2 text-primary', className)}>
       <ByGrowMark className={markClassName} />
-      <span
-        className={cn(
-          'font-display text-[22px] leading-none font-bold tracking-[-0.045em]',
-          wordmarkClassName,
-        )}
-      >
-        bygrow
-      </span>
+      <ByGrowWordmark className={cn('text-[22px]', wordmarkClassName)} />
       {showInbox ? (
         <span className="ml-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
           <span aria-hidden="true" className="h-3 w-px bg-border" />

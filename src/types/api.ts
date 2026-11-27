@@ -162,6 +162,11 @@ export interface AiSettingsMessages {
   fallback: string
 }
 
+export interface AiSettingsReplyDelay {
+  minSeconds: number
+  maxSeconds: number
+}
+
 export interface AiSettings {
   assistantName: string
   businessName: string
@@ -173,6 +178,7 @@ export interface AiSettings {
   rules: string[]
   extraInstructions: string
   messages: AiSettingsMessages
+  replyDelay: AiSettingsReplyDelay
   model: string
   temperature: number | null
   maxTokens: number | null

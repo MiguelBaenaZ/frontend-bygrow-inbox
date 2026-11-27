@@ -47,6 +47,7 @@ function baseSettings(overrides: Partial<AiSettings> = {}): AiSettings {
       unsupported: '',
       fallback: '',
     },
+    replyDelay: { minSeconds: 4, maxSeconds: 9 },
     model: '',
     temperature: null,
     maxTokens: null,
@@ -251,5 +252,125 @@ describe('AiSettingsPage', () => {
 
     const alert = screen.getByRole('alert')
     expect(within(alert).getByText('Hay datos inválidos')).toBeInTheDocument()
+  })
+
+  it('ajusta y limita el tiempo de respuesta, y lo envía al guardar', async () => {
+    const fetchMock = installFetch(async (input, init) => {
+      const url = String(input)
+      if (url.endsWith('/api/ai-settings') && init?.method === 'PUT') {
+        const body = JSON.parse(String(init.body)) as AiSettings
+        return jsonResponse({
+          ok: true,
+          settings: body,
+          version: 4,
+          updatedAt: Date.now(),
+        })
+      }
+      if (url.endsWith('/api/ai-settings')) {
+        return jsonResponse(settingsResponse())
+      }
+      return jsonResponse({ error: 'not_found' }, 404)
+    })
+
+    renderPage()
+    const browser = userEvent.setup()
+    const minInput = await screen.findByLabelText('Mínimo')
+    const maxInput = screen.getByLabelText('Máximo')
+
+    expect(minInput).toHaveValue(4)
+    expect(maxInput).toHaveValue(9)
+    expect(
+      screen.getByRole('status', { name: 'Vista previa del tiempo de respuesta' }),
+    ).toHaveTextContent('Responderá entre 4 y 9 segundos después de recibir el mensaje.')
+
+    await browser.clear(minInput)
+    await browser.type(minInput, '10')
+    expect(minInput).toHaveValue(10)
+    expect(maxInput).toHaveValue(10)
+
+    await browser.clear(maxInput)
+    await browser.type(maxInput, '3')
+    expect(minInput).toHaveValue(10)
+    expect(maxInput).toHaveValue(10)
+
+    await browser.clear(minInput)
+    await browser.type(minInput, '30')
+    expect(minInput).toHaveValue(25)
+    expect(maxInput).toHaveValue(25)
+
+    await browser.click(screen.getByRole('button', { name: 'Guardar' }))
+    expect(await screen.findByText('Configuración guardada correctamente.')).toBeInTheDocument()
+
+    const putCall = fetchMock.mock.calls.find(
+      ([, init]) => (init as RequestInit | undefined)?.method === 'PUT',
+    )
+    expect(putCall).toBeDefined()
+    const payload = JSON.parse(String((putCall?.[1] as RequestInit).body)) as AiSettings
+    expect(payload.replyDelay).toEqual({ minSeconds: 25, maxSeconds: 25 })
+  })
+
+  it('aplica los atajos Inmediato y Restablecer al tiempo de respuesta', async () => {
+    installFetch(async () => jsonResponse(settingsResponse()))
+    renderPage()
+    const browser = userEvent.setup()
+    const minInput = await screen.findByLabelText('Mínimo')
+    const maxInput = screen.getByLabelText('Máximo')
+
+    await browser.click(screen.getByRole('button', { name: 'Inmediato' }))
+    expect(minInput).toHaveValue(0)
+    expect(maxInput).toHaveValue(0)
+    expect(
+      screen.getByRole('status', { name: 'Vista previa del tiempo de respuesta' }),
+    ).toHaveTextContent('Responderá entre 0 y 0 segundos después de recibir el mensaje.')
+    expect(screen.getByText('Cambios sin guardar')).toBeInTheDocument()
+
+    await browser.click(screen.getByRole('button', { name: 'Restablecer' }))
+    expect(minInput).toHaveValue(4)
+    expect(maxInput).toHaveValue(9)
+    expect(screen.queryByText('Cambios sin guardar')).not.toBeInTheDocument()
+  })
+
+  it('restaura una versión antigua sin tiempo de respuesta usando 4 y 9', async () => {
+    const legacySettings = baseSettings()
+    delete (legacySettings as Partial<AiSettings>).replyDelay
+
+    installFetch(async (input) => {
+      const url = String(input)
+      if (url.endsWith('/api/ai-settings/history')) {
+        return jsonResponse({
+          ok: true,
+          versions: [
+            {
+              version: 2,
+              updatedAt: Date.now() - 60_000,
+              updatedBy: 'user-1',
+              email: 'admin@bygrow.com',
+            },
+          ],
+        })
+      }
+      if (url.includes('/api/ai-settings/restore/2')) {
+        return jsonResponse({
+          ok: true,
+          settings: legacySettings,
+          version: 5,
+          updatedAt: Date.now(),
+        })
+      }
+      return jsonResponse(settingsResponse())
+    })
+
+    renderPage()
+    const browser = userEvent.setup()
+    await screen.findByLabelText('Nombre del asistente')
+
+    await browser.click(screen.getByRole('button', { name: 'Historial' }))
+    await browser.click(await screen.findByRole('button', { name: 'Restaurar' }))
+    await browser.click(await screen.findByRole('button', { name: 'Restaurar versión' }))
+
+    expect(await screen.findByText('Versión restaurada correctamente.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Mínimo')).toHaveValue(4)
+    expect(screen.getByLabelText('Máximo')).toHaveValue(9)
+    expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled()
   })
 })

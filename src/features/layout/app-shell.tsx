@@ -12,7 +12,7 @@ import {
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 
-import { ByGrowLogo, ByGrowMark } from '@/components/brand/bygrow-logo'
+import { ByGrowLogo, ByGrowMark, ByGrowWordmark } from '@/components/brand/bygrow-logo'
 import { UserAvatar } from '@/components/user-avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -276,7 +276,7 @@ function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
           aria-label="ByGrow Inbox"
         >
           <ByGrowMark className="h-6" />
-          <span className="font-display text-[18px] font-bold tracking-[-0.04em]">bygrow</span>
+          <ByGrowWordmark className="text-[18px]" />
         </Link>
         <div className="hidden items-center gap-2 text-[12px] text-muted-foreground lg:flex">
           <span className="inline-flex size-5 items-center justify-center rounded bg-sheet/70 text-primary">

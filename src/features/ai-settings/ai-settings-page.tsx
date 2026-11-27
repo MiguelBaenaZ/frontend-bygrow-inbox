@@ -18,6 +18,7 @@ import {
   ShieldCheckIcon,
   ShieldXIcon,
   SlidersHorizontalIcon,
+  TimerIcon,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useBlocker } from 'react-router-dom'
@@ -48,6 +49,7 @@ import { Field, SettingsSection } from '@/features/ai-settings/form-parts'
 import { HistoryDialog } from '@/features/ai-settings/history-dialog'
 import { PromptPreviewDialog } from '@/features/ai-settings/prompt-preview-dialog'
 import { useAiSettingsQuery } from '@/features/ai-settings/queries'
+import { ReplyDelayEditor } from '@/features/ai-settings/reply-delay-editor'
 import { RulesEditor } from '@/features/ai-settings/rules-editor'
 import { ServicesEditor } from '@/features/ai-settings/services-editor'
 import { useDocumentTitle } from '@/hooks/use-document-title'
@@ -66,6 +68,7 @@ const sectionLinks = [
   { id: 'ai-section-rules', label: 'Reglas', icon: ShieldCheckIcon },
   { id: 'ai-section-instructions', label: 'Instrucciones', icon: LightbulbIcon },
   { id: 'ai-section-messages', label: 'Mensajes', icon: MessageSquareTextIcon },
+  { id: 'ai-section-reply-delay', label: 'Tiempo de respuesta', icon: TimerIcon },
   { id: 'ai-section-advanced', label: 'Avanzado', icon: SlidersHorizontalIcon },
 ] as const
 
@@ -622,6 +625,19 @@ function AiSettingsEditor({ initial }: { initial: AiSettingsResponse }) {
                   limits={limits}
                   errors={errors}
                   onChange={(messages) => patchSettings({ messages })}
+                />
+              </SettingsSection>
+
+              <SettingsSection
+                id="ai-section-reply-delay"
+                icon={TimerIcon}
+                title="Tiempo de respuesta"
+                description="Cuánto espera el asistente antes de enviar cada respuesta."
+              >
+                <ReplyDelayEditor
+                  value={settings.replyDelay}
+                  error={errors.replyDelay}
+                  onChange={(replyDelay) => patchSettings({ replyDelay })}
                 />
               </SettingsSection>
 

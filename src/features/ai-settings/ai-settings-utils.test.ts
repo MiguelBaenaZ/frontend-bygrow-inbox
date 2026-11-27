@@ -4,6 +4,7 @@ import {
   createEmptyAiSettings,
   hasAiSettingsChanges,
   normalizeAiSettings,
+  normalizeReplyDelay,
   validateAiSettings,
 } from '@/features/ai-settings/ai-settings-utils'
 import type { AiSettings, AiSettingsLimits } from '@/types/api'
@@ -94,6 +95,47 @@ describe('normalizeAiSettings', () => {
     )
     expect(normalized.temperature).toBeNull()
     expect(normalized.maxTokens).toBeNull()
+  })
+
+  it('usa 4 y 9 segundos cuando la configuración antigua no trae el tiempo de respuesta', () => {
+    const legacy = settingsWith()
+    delete (legacy as Partial<AiSettings>).replyDelay
+
+    expect(normalizeAiSettings(legacy).replyDelay).toEqual({ minSeconds: 4, maxSeconds: 9 })
+  })
+})
+
+describe('normalizeReplyDelay', () => {
+  it('mantiene valores válidos y decimales', () => {
+    expect(normalizeReplyDelay({ minSeconds: 3.5, maxSeconds: 7.25 })).toEqual({
+      minSeconds: 3.5,
+      maxSeconds: 7.25,
+    })
+  })
+
+  it('sube el máximo hasta el mínimo cuando vienen invertidos', () => {
+    expect(normalizeReplyDelay({ minSeconds: 10, maxSeconds: 3 })).toEqual({
+      minSeconds: 10,
+      maxSeconds: 10,
+    })
+  })
+
+  it('limita los valores al rango de 0 a 25 segundos', () => {
+    expect(normalizeReplyDelay({ minSeconds: 30, maxSeconds: 3 })).toEqual({
+      minSeconds: 25,
+      maxSeconds: 25,
+    })
+    expect(normalizeReplyDelay({ minSeconds: -5, maxSeconds: 30 })).toEqual({
+      minSeconds: 0,
+      maxSeconds: 25,
+    })
+  })
+
+  it('permite la respuesta inmediata con 0 y 0', () => {
+    expect(normalizeReplyDelay({ minSeconds: 0, maxSeconds: 0 })).toEqual({
+      minSeconds: 0,
+      maxSeconds: 0,
+    })
   })
 })
 

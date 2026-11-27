@@ -1,5 +1,11 @@
 import { ApiError } from '@/lib/api'
-import type { AiService, AiSettings, AiSettingsLimits, AiSettingsMessages } from '@/types/api'
+import type {
+  AiService,
+  AiSettings,
+  AiSettingsLimits,
+  AiSettingsMessages,
+  AiSettingsReplyDelay,
+} from '@/types/api'
 
 export type AiSettingsFieldErrors = Record<string, string>
 
@@ -16,6 +22,10 @@ export const AI_SETTINGS_MESSAGE_KEYS: AiSettingsMessageKey[] = [
 export const MAX_TOKENS_MIN = 100
 export const MAX_TOKENS_MAX = 4000
 export const DEFAULT_TEMPERATURE = 0.7
+
+export const REPLY_DELAY_MIN = 0
+export const REPLY_DELAY_MAX = 25
+export const DEFAULT_REPLY_DELAY: AiSettingsReplyDelay = { minSeconds: 4, maxSeconds: 9 }
 
 function text(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
@@ -47,10 +57,34 @@ export function createEmptyAiSettings(): AiSettings {
       unsupported: '',
       fallback: '',
     },
+    replyDelay: { ...DEFAULT_REPLY_DELAY },
     model: '',
     temperature: null,
     maxTokens: null,
   }
+}
+
+export function clampReplyDelaySeconds(value: number): number {
+  return Math.min(REPLY_DELAY_MAX, Math.max(REPLY_DELAY_MIN, value))
+}
+
+/**
+ * Corrige el tiempo de respuesta igual que el backend: limita ambos valores a
+ * 0–25 y sube el máximo hasta el mínimo cuando vienen invertidos. Las versiones
+ * antiguas que no traen el campo usan 4 y 9 segundos.
+ */
+export function normalizeReplyDelay(value: unknown): AiSettingsReplyDelay {
+  const raw = value && typeof value === 'object' ? (value as Partial<AiSettingsReplyDelay>) : {}
+
+  const min = optionalNumber(raw.minSeconds)
+  const max = optionalNumber(raw.maxSeconds)
+  const minSeconds = clampReplyDelaySeconds(min ?? DEFAULT_REPLY_DELAY.minSeconds)
+  const maxSeconds = Math.max(
+    minSeconds,
+    clampReplyDelaySeconds(max ?? DEFAULT_REPLY_DELAY.maxSeconds),
+  )
+
+  return { minSeconds, maxSeconds }
 }
 
 /**
@@ -87,6 +121,7 @@ export function normalizeAiSettings(settings: AiSettings): AiSettings {
       unsupported: text(settings.messages?.unsupported),
       fallback: text(settings.messages?.fallback),
     },
+    replyDelay: normalizeReplyDelay(settings.replyDelay),
     model: text(settings.model),
     temperature: optionalNumber(settings.temperature),
     maxTokens: optionalNumber(settings.maxTokens),
@@ -171,6 +206,20 @@ export function validateAiSettings(
       maxTokens > MAX_TOKENS_MAX)
   ) {
     errors.maxTokens = `Usa un número entero entre ${MAX_TOKENS_MIN} y ${MAX_TOKENS_MAX}.`
+  }
+
+  const replyDelay = settings.replyDelay
+  if (replyDelay) {
+    const { minSeconds, maxSeconds } = replyDelay
+    if (
+      !Number.isFinite(minSeconds) ||
+      !Number.isFinite(maxSeconds) ||
+      minSeconds < REPLY_DELAY_MIN ||
+      maxSeconds > REPLY_DELAY_MAX ||
+      maxSeconds < minSeconds
+    ) {
+      errors.replyDelay = `Usa valores entre ${REPLY_DELAY_MIN} y ${REPLY_DELAY_MAX} segundos, con el máximo igual o mayor que el mínimo.`
+    }
   }
 
   return errors
