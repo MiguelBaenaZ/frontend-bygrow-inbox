@@ -4,6 +4,10 @@ export function getErrorCode(error: unknown): string | null {
   return error instanceof ApiError ? error.code : null
 }
 
+export function isForbiddenError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 403
+}
+
 export function getErrorMessage(
   error: unknown,
   fallback = 'No se pudo completar la acción. Inténtalo de nuevo.',

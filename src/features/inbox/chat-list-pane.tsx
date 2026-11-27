@@ -15,14 +15,12 @@ import {
   contactName,
   filterChats,
   lastMessagePreview,
+  summaryPreview,
   type ChatFilter,
 } from '@/features/inbox/inbox-utils'
+import { isForbiddenError } from '@/lib/errors'
 import { cn } from '@/lib/utils'
-import {
-  formatConversationStatus,
-  formatDateTime,
-  formatInboxStamp,
-} from '@/lib/format'
+import { formatConversationStatus, formatDateTime, formatInboxStamp } from '@/lib/format'
 import { useNow } from '@/hooks/use-now'
 import type { ChatSummary } from '@/types/api'
 
@@ -30,23 +28,17 @@ interface ChatListPaneProps {
   chats: ChatSummary[] | undefined
   isLoading: boolean
   isError: boolean
+  error?: unknown
   onRetry: () => void
   selectedId: string | undefined
   className?: string
 }
 
-function ChatRow({
-  chat,
-  selected,
-  now,
-}: {
-  chat: ChatSummary
-  selected: boolean
-  now: number
-}) {
+function ChatRow({ chat, selected, now }: { chat: ChatSummary; selected: boolean; now: number }) {
   const name = contactName(chat)
   const time = chat.updated_at ?? chat.last_seen_at
   const needsReply = chat.last_dir === 'in'
+  const summary = summaryPreview(chat.summary)
 
   return (
     <Link
@@ -73,10 +65,7 @@ function ChatRow({
           >
             {name}
           </p>
-          <span
-            className="shrink-0 text-[11px] text-muted-foreground"
-            title={formatDateTime(time)}
-          >
+          <span className="shrink-0 text-[11px] text-muted-foreground" title={formatDateTime(time)}>
             {formatInboxStamp(time, now)}
           </span>
         </div>
@@ -93,6 +82,13 @@ function ChatRow({
             />
           ) : null}
         </div>
+
+        {summary ? (
+          <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground/90">
+            <span className="sr-only">Resumen: </span>
+            {summary}
+          </p>
+        ) : null}
 
         <div className="mt-1.5 flex flex-wrap items-center gap-1">
           {chat.status ? (
@@ -112,10 +108,7 @@ function ChatListSkeleton() {
   return (
     <div aria-hidden="true">
       {Array.from({ length: 6 }).map((_, index) => (
-        <div
-          key={index}
-          className="flex min-h-[78px] gap-3 border-b border-rule px-3.5 py-3"
-        >
+        <div key={index} className="flex min-h-[78px] gap-3 border-b border-rule px-3.5 py-3">
           <Skeleton className="size-9 rounded-full" />
           <div className="flex-1 space-y-2 pt-0.5">
             <div className="flex justify-between gap-5">
@@ -135,6 +128,7 @@ export function ChatListPane({
   chats,
   isLoading,
   isError,
+  error,
   onRetry,
   selectedId,
   className,
@@ -142,6 +136,7 @@ export function ChatListPane({
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<ChatFilter>('all')
   const now = useNow(30_000)
+  const forbidden = isForbiddenError(error)
 
   const filteredChats = useMemo(
     () => (chats ? filterChats(chats, filter, search) : []),
@@ -186,11 +181,7 @@ export function ChatListPane({
           ) : null}
         </div>
 
-        <div
-          className="mt-2 flex flex-wrap gap-1"
-          role="group"
-          aria-label="Filtrar conversaciones"
-        >
+        <div className="mt-2 flex flex-wrap gap-1" role="group" aria-label="Filtrar conversaciones">
           {chatFilters.map((item) => (
             <button
               key={item.value}
@@ -215,8 +206,15 @@ export function ChatListPane({
 
         {isError && !isLoading ? (
           <QueryError
-            title="No se pudieron cargar las conversaciones"
-            onRetry={onRetry}
+            title={
+              forbidden
+                ? 'No tienes permiso para ver las conversaciones'
+                : 'No se pudieron cargar las conversaciones'
+            }
+            description={
+              forbidden ? 'Pídele a un administrador que revise tus permisos.' : undefined
+            }
+            onRetry={forbidden ? undefined : onRetry}
             compact
           />
         ) : null}

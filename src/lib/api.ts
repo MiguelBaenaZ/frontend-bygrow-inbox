@@ -5,7 +5,10 @@ import type {
   AiSettingsPreviewResponse,
   AiSettingsResponse,
   ChatDetailResponse,
+  ChatProfilePatch,
+  ChatProfileResponse,
   ChatsResponse,
+  ChatSummaryRebuildResponse,
   HandoffResponse,
   LeadStage,
   LoginResponse,
@@ -145,6 +148,20 @@ export const chatsApi = {
 
   get(chatId: string): Promise<ChatDetailResponse> {
     return request<ChatDetailResponse>(`/api/chats/${encodeURIComponent(chatId)}`)
+  },
+
+  updateProfile(chatId: string, patch: ChatProfilePatch): Promise<ChatProfileResponse> {
+    return request<ChatProfileResponse>(
+      `/api/chats/${encodeURIComponent(chatId)}/profile`,
+      jsonBody(patch, 'PATCH'),
+    )
+  },
+
+  rebuildSummary(chatId: string): Promise<ChatSummaryRebuildResponse> {
+    return request<ChatSummaryRebuildResponse>(
+      `/api/chats/${encodeURIComponent(chatId)}/summary/rebuild`,
+      { method: 'POST' },
+    )
   },
 
   remove(chatId: string): Promise<{ ok: boolean }> {

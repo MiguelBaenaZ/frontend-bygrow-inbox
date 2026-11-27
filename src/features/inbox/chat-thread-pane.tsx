@@ -12,6 +12,7 @@ interface ChatThreadPaneProps {
   detail: ChatDetailResponse | undefined
   isLoading: boolean
   isError: boolean
+  error?: unknown
   onRetry: () => void
   now: number
   actions: ChatActions
@@ -42,6 +43,7 @@ export function ChatThreadPane({
   detail,
   isLoading,
   isError,
+  error,
   onRetry,
   now,
   actions,
@@ -67,6 +69,7 @@ export function ChatThreadPane({
         messages={detail?.messages}
         isLoading={isLoading}
         isError={isError}
+        error={error}
         onRetry={onRetry}
         isAdmin={isAdmin}
         now={now}

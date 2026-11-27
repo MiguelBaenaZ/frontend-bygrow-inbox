@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MessageBubble } from '@/features/inbox/message-bubble'
 import { messagesApi } from '@/lib/api'
-import { getErrorMessage } from '@/lib/errors'
+import { getErrorMessage, isForbiddenError } from '@/lib/errors'
 import { bogotaDayKey, formatDayDivider, formatTime } from '@/lib/format'
 import { queryKeys } from '@/lib/query-keys'
 import type { ThreadMessage } from '@/types/api'
@@ -21,6 +21,7 @@ interface MessageListProps {
   messages: ThreadMessage[] | undefined
   isLoading: boolean
   isError: boolean
+  error?: unknown
   onRetry: () => void
   isAdmin: boolean
   now: number
@@ -71,11 +72,13 @@ export function MessageList({
   messages,
   isLoading,
   isError,
+  error,
   onRetry,
   isAdmin,
   now,
 }: MessageListProps) {
   const queryClient = useQueryClient()
+  const forbidden = isForbiddenError(error)
   const scrollRef = useRef<HTMLDivElement>(null)
   const renderedRef = useRef<{ chatId: string; lastId: string | null; count: number }>({
     chatId: '',
@@ -117,9 +120,7 @@ export function MessageList({
     announcedInboundRef.current = lastInbound.id
     if (!wasInitialized) return
     const preview = lastInbound.body.trim().slice(0, 120)
-    setAnnouncement(
-      `Nuevo mensaje de ${chatName}${preview ? `: ${preview}` : ''}`,
-    )
+    setAnnouncement(`Nuevo mensaje de ${chatName}${preview ? `: ${preview}` : ''}`)
   }, [chatName, lastInbound])
 
   useEffect(() => {
@@ -182,9 +183,17 @@ export function MessageList({
 
         {isError && !isLoading ? (
           <QueryError
-            title="No se pudo cargar la conversación"
-            description="El hilo no está disponible en este momento."
-            onRetry={onRetry}
+            title={
+              forbidden
+                ? 'No tienes permiso para ver esta conversación'
+                : 'No se pudo cargar la conversación'
+            }
+            description={
+              forbidden
+                ? 'Pídele a un administrador que revise tus permisos.'
+                : 'El hilo no está disponible en este momento.'
+            }
+            onRetry={forbidden ? undefined : onRetry}
             compact
           />
         ) : null}

@@ -59,6 +59,20 @@ export function plainSummary(summary: string): string {
     .trim()
 }
 
+/** Texto de una o dos líneas para la tarjeta de la lista. */
+export function summaryPreview(summary: string | null | undefined, maxLength = 220): string {
+  if (typeof summary !== 'string' || !summary) return ''
+  const plain = plainSummary(summary).replace(/\s+/g, ' ').trim()
+  if (plain.length <= maxLength) return plain
+  return `${plain.slice(0, maxLength).trimEnd()}…`
+}
+
+/** Los resúmenes largos se pueden contraer en el detalle. */
+export function summaryNeedsToggle(summary: string, maxLength = 240): boolean {
+  const text = summary.trim()
+  return text.length > maxLength || text.split('\n').length > 6
+}
+
 export function filterChats(
   chats: ChatSummary[],
   filter: ChatFilter,

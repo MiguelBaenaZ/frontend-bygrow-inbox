@@ -45,6 +45,27 @@ export interface ChatSummary {
   window_open: boolean
 }
 
+export interface ConversationSummary {
+  summary: string
+  summaryUpdatedAt: number | null
+  summaryThroughSeq: number | null
+}
+
+export interface ChatProfile {
+  name: string
+  company: string
+  business: string
+  customers: string
+  channels: string
+  city: string
+  email: string
+  pains: string[]
+  interests: string[]
+  notes: string[]
+}
+
+export type ChatProfilePatch = Partial<ChatProfile>
+
 export interface ConversationMeta {
   status: ConversationStatus
   leadStage: LeadStage
@@ -103,6 +124,18 @@ export interface ChatDetailResponse {
   status: ConversationStatus
   meta: ConversationMeta
   messages: ThreadMessage[]
+  summary: ConversationSummary | null
+  profile: ChatProfile
+}
+
+export interface ChatProfileResponse {
+  ok: boolean
+  profile: ChatProfile
+}
+
+export interface ChatSummaryRebuildResponse {
+  ok: boolean
+  summary: ConversationSummary | null
 }
 
 export interface TemplatesResponse {

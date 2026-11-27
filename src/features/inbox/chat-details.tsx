@@ -40,14 +40,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { useAuth } from '@/features/auth/auth-context'
 import type { ChatActions } from '@/features/inbox/chat-actions'
-import {
-  contactHandle,
-  contactInitialSeed,
-  contactName,
-  plainSummary,
-} from '@/features/inbox/inbox-utils'
+import { contactHandle, contactInitialSeed, contactName } from '@/features/inbox/inbox-utils'
+import { ProfileCard } from '@/features/inbox/profile-card'
+import { SummaryPanel } from '@/features/inbox/summary-panel'
 import { chatsApi, inboxApi } from '@/lib/api'
-import { getErrorMessage } from '@/lib/errors'
+import { getErrorMessage, isForbiddenError } from '@/lib/errors'
 import {
   formatDate,
   formatDateTime,
@@ -59,20 +56,9 @@ import {
 } from '@/lib/format'
 import { queryKeys } from '@/lib/query-keys'
 import { cn, copyToClipboard } from '@/lib/utils'
-import type {
-  ChatDetailResponse,
-  ChatSummary,
-  ConversationMeta,
-  LeadStage,
-} from '@/types/api'
+import type { ChatDetailResponse, ChatSummary, ConversationMeta, LeadStage } from '@/types/api'
 
-const leadStages: LeadStage[] = [
-  'nuevo',
-  'en_diagnostico',
-  'propuesto',
-  'cliente',
-  'perdido',
-]
+const leadStages: LeadStage[] = ['nuevo', 'en_diagnostico', 'propuesto', 'cliente', 'perdido']
 
 type ConsentKind = 'optIn' | 'optOut'
 type MaintenanceKind = 'retention' | 'media'
@@ -83,6 +69,7 @@ interface ChatDetailsProps {
   detail: ChatDetailResponse | undefined
   isLoading: boolean
   isError: boolean
+  error?: unknown
   onRetry: () => void
   now: number
   actions: ChatActions
@@ -147,11 +134,12 @@ function DetailsSkeleton() {
         </div>
       </div>
       <div className="space-y-2">
-        <Skeleton className="h-3 w-28" />
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-2.5 w-32" />
         <Skeleton className="h-28 w-full rounded-lg" />
       </div>
       <div className="space-y-2">
-        <Skeleton className="h-3 w-32" />
+        <Skeleton className="h-3 w-28" />
         <Skeleton className="h-24 w-full rounded-lg" />
       </div>
     </div>
@@ -164,6 +152,7 @@ export function ChatDetails({
   detail,
   isLoading,
   isError,
+  error,
   onRetry,
   now,
   actions,
@@ -174,6 +163,7 @@ export function ChatDetails({
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const isAdmin = user?.role === 'admin'
+  const forbidden = isForbiddenError(error)
   const [consentRequest, setConsentRequest] = useState<{
     kind: ConsentKind
     next: boolean
@@ -325,7 +315,11 @@ export function ChatDetails({
         {isAdmin ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label="Abrir mantenimiento administrativo">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Abrir mantenimiento administrativo"
+              >
                 <EllipsisIcon className="size-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
@@ -350,9 +344,17 @@ export function ChatDetails({
 
         {isError && !detail ? (
           <QueryError
-            title="No se pudo cargar el contacto"
-            description="Vuelve a intentarlo para consultar su consentimiento y su etapa."
-            onRetry={onRetry}
+            title={
+              forbidden
+                ? 'No tienes permiso para ver este contacto'
+                : 'No se pudo cargar el contacto'
+            }
+            description={
+              forbidden
+                ? 'Pídele a un administrador que revise tus permisos.'
+                : 'Vuelve a intentarlo para consultar su consentimiento y su etapa.'
+            }
+            onRetry={forbidden ? undefined : onRetry}
             compact
           />
         ) : null}
@@ -381,18 +383,11 @@ export function ChatDetails({
                   </div>
                 </div>
               </div>
-
-              {chat?.summary ? (
-                <div className="mt-3 rounded-lg bg-raised p-2.5">
-                  <p className="text-[11px] font-medium text-muted-foreground">
-                    Resumen de la conversación
-                  </p>
-                  <p className="mt-1 line-clamp-5 text-[12px] leading-5 whitespace-pre-line text-foreground">
-                    {plainSummary(chat.summary)}
-                  </p>
-                </div>
-              ) : null}
             </div>
+
+            <SummaryPanel chatId={chatId} summary={detail.summary} now={now} />
+
+            <ProfileCard chatId={chatId} profile={detail.profile} />
 
             <DetailsSection title="Contacto">
               <dl className="divide-y divide-border/60">
@@ -433,9 +428,7 @@ export function ChatDetails({
                   }
                   mono
                 />
-                {chat?.username ? (
-                  <DataRow label="Usuario" value={`@${chat.username}`} />
-                ) : null}
+                {chat?.username ? <DataRow label="Usuario" value={`@${chat.username}`} /> : null}
                 <DataRow label="Última actividad" value={formatDateTime(chat?.last_seen_at)} />
               </dl>
             </DetailsSection>
@@ -629,8 +622,7 @@ export function ChatDetails({
               <section className="border-t border-border px-4 pt-4 pb-5">
                 <h3 className="text-[13px] font-semibold text-foreground">Administración</h3>
                 <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
-                  El borrado es definitivo. También se elimina la media que ya no esté
-                  referenciada.
+                  El borrado es definitivo. También se elimina la media que ya no esté referenciada.
                 </p>
                 <Button
                   variant="ghost"

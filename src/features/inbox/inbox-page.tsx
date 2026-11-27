@@ -4,12 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { useAuth } from '@/features/auth/auth-context'
 import { useChatActions } from '@/features/inbox/chat-actions'
 import { ChatDetails } from '@/features/inbox/chat-details'
@@ -109,10 +104,7 @@ export function InboxPage() {
   const [detailsOpen, setDetailsOpen] = useState(false)
 
   const chats = chatsQuery.data
-  const chat = useMemo(
-    () => chats?.find((item) => item.user_id === chatId),
-    [chatId, chats],
-  )
+  const chat = useMemo(() => chats?.find((item) => item.user_id === chatId), [chatId, chats])
   const summary = useMemo(() => summarizeChats(chats ?? []), [chats])
   const isAdmin = user?.role === 'admin'
   const detail = chatQuery.data
@@ -163,6 +155,7 @@ export function InboxPage() {
           chats={chats}
           isLoading={chatsQuery.isLoading}
           isError={chatsQuery.isError}
+          error={chatsQuery.error}
           onRetry={() => void chatsQuery.refetch()}
           selectedId={chatId}
           className={cn(
@@ -185,6 +178,7 @@ export function InboxPage() {
               detail={detail}
               isLoading={chatQuery.isLoading}
               isError={chatQuery.isError}
+              error={chatQuery.error}
               onRetry={() => void chatQuery.refetch()}
               now={now}
               actions={actions}
@@ -201,11 +195,13 @@ export function InboxPage() {
         {chatId && isWideDetails ? (
           <div className="h-full w-[312px] shrink-0 border-l border-border">
             <ChatDetails
+              key={chatId}
               chatId={chatId}
               chat={chat}
               detail={detail}
               isLoading={chatQuery.isLoading}
               isError={chatQuery.isError}
+              error={chatQuery.error}
               onRetry={() => void chatQuery.refetch()}
               now={now}
               actions={actions}
@@ -223,11 +219,13 @@ export function InboxPage() {
               Datos del contacto, ventana de servicio, consentimiento y seguimiento.
             </SheetDescription>
             <ChatDetails
+              key={chatId}
               chatId={chatId}
               chat={chat}
               detail={detail}
               isLoading={chatQuery.isLoading}
               isError={chatQuery.isError}
+              error={chatQuery.error}
               onRetry={() => void chatQuery.refetch()}
               now={now}
               actions={actions}

@@ -4,6 +4,7 @@ import {
   contactName,
   filterChats,
   lastMessagePreview,
+  summaryPreview,
   summarizeChats,
 } from '@/features/inbox/inbox-utils'
 import type { ChatSummary } from '@/types/api'
@@ -73,5 +74,14 @@ describe('inbox-utils', () => {
       closedWindows: 0,
       optedOut: 0,
     })
+  })
+
+  it('prepara una vista previa corta del resumen para la lista', () => {
+    expect(summaryPreview('Resumen corto')).toBe('Resumen corto')
+    expect(summaryPreview(null)).toBe('')
+    expect(summaryPreview('**Uno**\n\n- Dos', 100)).toBe('Uno Dos')
+
+    const preview = summaryPreview('a'.repeat(50), 20)
+    expect(preview).toBe(`${'a'.repeat(20)}…`)
   })
 })

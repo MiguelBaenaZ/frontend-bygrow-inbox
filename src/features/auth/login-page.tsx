@@ -39,7 +39,9 @@ export function LoginPage() {
 
   if (loading) return <SessionSplash />
   if (user) {
-    return <Navigate to={safeRedirect((location.state as { from?: unknown } | null)?.from)} replace />
+    return (
+      <Navigate to={safeRedirect((location.state as { from?: unknown } | null)?.from)} replace />
+    )
   }
 
   function validate(): boolean {
@@ -69,9 +71,9 @@ export function LoginPage() {
   }
 
   return (
-    <main className="min-h-svh bg-frame p-2 sm:p-4 lg:p-5">
-      <div className="mx-auto grid min-h-[calc(100svh-1rem)] max-w-[1560px] overflow-hidden rounded-2xl border border-border bg-sheet sm:min-h-[calc(100svh-2rem)] lg:grid-cols-[minmax(0,0.94fr)_minmax(440px,1.06fr)] lg:p-2">
-        <aside className="relative hidden min-h-[620px] overflow-hidden rounded-xl bg-secondary p-10 text-foreground lg:flex lg:flex-col lg:justify-between xl:p-14">
+    <main className="grid min-h-svh bg-frame p-2 sm:p-4 lg:p-5">
+      <div className="mx-auto grid w-full max-w-[1560px] overflow-hidden rounded-2xl border border-border bg-sheet lg:grid-cols-[minmax(0,0.94fr)_minmax(440px,1.06fr)] lg:p-2">
+        <aside className="relative hidden overflow-hidden rounded-xl bg-secondary p-10 text-foreground lg:flex lg:flex-col lg:justify-between xl:p-14">
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-2 text-primary">
               <ByGrowMark className="h-8" />
@@ -86,7 +88,7 @@ export function LoginPage() {
           </div>
 
           <div className="max-w-[440px]">
-            <ByGrowMark className="mb-10 h-36 text-primary xl:h-44" />
+            <ByGrowMark className="mb-[clamp(1rem,4svh,2.5rem)] h-[clamp(3.5rem,18svh,9rem)] text-primary xl:h-[clamp(3.5rem,18svh,11rem)]" />
             <p className="font-display text-[clamp(2.25rem,4vw,3.25rem)] leading-[0.98] font-semibold tracking-[-0.045em] text-balance text-primary">
               Bandeja del equipo
             </p>
@@ -108,7 +110,7 @@ export function LoginPage() {
           </div>
         </aside>
 
-        <section className="relative flex min-h-[calc(100svh-1rem)] items-center justify-center px-5 py-10 sm:px-10 sm:py-14">
+        <section className="relative flex items-center justify-center px-5 py-10 sm:px-10 sm:py-14">
           <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
             <Button
               variant="ghost"
